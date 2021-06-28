@@ -10,6 +10,8 @@ lo=$(. find_latest_output.sh)  # latest output_xxxxx
 
 if [[ $lo =~ _([0-9]{5}) ]]; then
     printf -v ln "%g" ${BASH_REMATCH[1]}  # latest output n
+else
+    ln=0  # no outputs found
 fi
 
 nml=($(ls *.nml))
