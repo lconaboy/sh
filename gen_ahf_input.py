@@ -27,7 +27,7 @@ def write_cfg(path, ioutput):
         NminPerHalo = 20
         RhoVir = 0
         Dvir = 200
-        MaxGatherRad = 0.5
+        MaxGatherRad = 3.0
         LevelDomainDecomp = 7
         NcpuReading = 4
 
