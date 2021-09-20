@@ -24,6 +24,9 @@ elif [[ $2 == "c" ]]; then
     mi=0.475
     ma=0.525
     echo "-- bounding box [$mi, $ma]"
+elif [[ $2 == "d" ]]; then
+    snap_dir="snap_${g}_d"
+    flag="-d"
 fi
 
 work_dir="../output_${r}"
@@ -31,6 +34,7 @@ work_dir="../output_${r}"
 mkdir ${snap_dir}
 cd ${snap_dir}
 
-exe=${HOME}/codes/convert/ramses2gadget_mpi
+exe=${HOME}/codes/ahf-v1.0-107/convert/ramses2gadget_mpi
+#exe=${HOME}/codes/convert/ramses2gadget_mpi
 
-mpiexec -n 8 $exe $flag $work_dir $mi $ma
+srun -n 48 $exe $flag $work_dir $mi $ma
