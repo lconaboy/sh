@@ -1,6 +1,6 @@
 #! /bin/bash
 
-x=(output_000*)
+x=(output_00*)
 
 min=-1
 max=$(( ${#x[@]} -1 ))
