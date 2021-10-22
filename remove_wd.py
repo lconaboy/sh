@@ -1,0 +1,163 @@
+#! /usr/bin/python3
+
+"""Script to remove walltime dumps from ramses outputs, and restore
+the number of snapshots determined by delta_aout.
+
+BE VERY CAREFUL WITH THIS -- it directly modifies output files, if you
+aren't sure don't use.
+
+"""
+
+import re
+import os
+import sys
+import glob
+import shutil
+
+def get_aout(aini, aend, delta_aout):
+    """Returns the output expansion factors determined before the
+    simulation starts. First aout corresponds to the initial expansion
+    factor.
+
+    """
+    
+    maxout = 1000
+    nout = min([int(aend / delta_aout), maxout])
+    nini = int(aini / delta_aout)
+    aout = [i * delta_aout for i in range(nout + 1)
+            if (i > aini) or (i == 0)]
+    aout[0] = aini
+
+    return aout
+
+def get_aouts_nml(aini, nml='nml.nml'):
+    with open(nml, 'r') as f:
+        for line in f:
+            if line[0:4] == 'aout':
+                neq = line.find('=')
+                aouts = [float(x) for x in line[neq+1:].split(',')]
+                aouts.insert(0, aini)
+
+                return aouts
+
+def get_aexp(output_dir):
+    """Returns the actual expansion factors of each output, lifted from
+    the info_xxxxx.txt files.
+
+    """
+    aexps = []
+    outs = glob.glob(os.path.join(output_dir, 'output_*'))
+    info = os.path.join(output_dir, 'output_{0:05d}', 'info_{0:05d}.txt')
+    
+    # Do a regex to get the output numbers
+    all_iouts = [int(re.search(r'output_[0-9]{5}', out).group()[-5:]) for out in outs]
+    print(all_iouts)
+
+    # Check to see if we got partway through this process and any
+    # backups remain
+    if os.path.isdir(os.path.join(output_dir, 'output_*.bak')):
+        bak_iouts = [int(re.search(r'output_[0-9]{5}', out).group()[-5:]) for out in bak_outs]
+        print('Found backups')
+        print(bak_iouts)
+        iouts = [x for x in all_iouts if x not in bak_iouts]
+    else:
+        iouts = all_iouts
+
+    print(iouts)
+    # Ignore .bak files
+    # iouts = sorted([int(iout) for iout in iouts if '.bak' not in iout])
+
+    # Open the info files to get the aexps
+    for iout in iouts:
+        f = open(info.format(iout), 'r')
+        line = f.readline()#.strip().split()
+
+        # See if the line has aexp in it
+        while re.match('aexp', line) is None:
+            line = f.readline()#.strip().split()
+        f.close()
+        
+        aexps.append(float(line.strip().split()[-1]))
+        
+    return iouts, aexps
+
+
+def split_iouts(iouts, aouts, aexps):
+    k_iouts = []
+
+    for aout in aouts:
+        diff = [abs(aexp - aout) for aexp in aexps]
+        k_iouts.append(iouts[diff.index(min(diff))])
+
+    # Now find the ones we want to remove
+    r_iouts = [x for x in iouts if x not in k_iouts]
+    # print(k_iouts)
+    # print(r_iouts)
+
+    return k_iouts, r_iouts
+
+def check(msg):
+    ans = raw_input(msg +' y/n ')
+    if ans != 'y':
+        sys.exit(1)
+
+    return
+
+aini = float(sys.argv[1])
+if len(sys.argv) > 2:
+    nml = sys.argv[2]
+else:
+    nml = 'nml.nml'
+
+aouts = get_aouts_nml(aini, nml)
+
+print('WARNING output files will be modified')
+print('WARNING run inside a screen')
+print('WARNING check the following list of aouts carefully and make sure')
+print('        they match up with what you expect')
+print(aouts)
+check('sure?')
+check('really sure?')
+print('ok, removing wallclock dumps...')
+
+output_dir = './' # '/cosma7/data/dp004/dc-cona1/bd/runs/halo10510/sametf'
+
+iouts, aexps = get_aexp(output_dir)
+k_iouts, r_iouts = split_iouts(iouts, aouts, aexps)
+
+
+# for each aout. Then move (or delete) the unmatched directories and
+# rename the others by using regex sub or replace.
+
+for r_iout in r_iouts:
+    src = os.path.join(output_dir, 'output_{0:05d}'.format(r_iout))
+    dst = os.path.join(output_dir, 'output_{0:05d}.bak'.format(r_iout))
+
+    print('moving', src, dst)
+    os.rename(src, dst)
+    
+for i, k_iout in enumerate(k_iouts):
+    t_iout = i + 1
+
+    if t_iout == k_iout:
+        print('leaving output_{0:05d}'.format(t_iout))
+    else:
+        src = os.path.join(output_dir, 'output_{0:05d}'.format(k_iout))
+        dst = os.path.join(output_dir, 'output_{0:05d}'.format(t_iout))
+
+        print('moving', src, dst)
+        os.rename(src, dst)
+
+        # Rename each file
+        fns = glob.glob(os.path.join(dst, '*_{0:05d}.*'.format(k_iout)))
+        
+        for src_f in fns:
+            dst_f = src_f.replace('_{0:05d}.'.format(k_iout),
+                                  '_{0:05d}.'.format(t_iout))
+            print(dst_f)
+            os.rename(src_f, dst_f)
+
+# # Finally clean up the backups
+# # baks = glob.glob(os.path.join(output_dir, '*output_*.bak'))
+# # for bak in baks:
+# #     shutil.rmtree(bak)
