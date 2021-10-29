@@ -14,6 +14,9 @@ import sys
 import glob
 import shutil
 
+DRY_RUN = False
+CLEANUP_BAK = False
+
 def get_aout(aini, aend, delta_aout):
     """Returns the output expansion factors determined before the
     simulation starts. First aout corresponds to the initial expansion
@@ -97,7 +100,7 @@ def split_iouts(iouts, aouts, aexps):
     return k_iouts, r_iouts
 
 def check(msg):
-    ans = raw_input(msg +' y/n ')
+    ans = input(msg +' y/n ')
     if ans != 'y':
         sys.exit(1)
 
@@ -110,15 +113,22 @@ else:
     nml = 'nml.nml'
 
 aouts = get_aouts_nml(aini, nml)
-
-print('WARNING output files will be modified')
-print('WARNING run inside a screen')
 print('WARNING check the following list of aouts carefully and make sure')
 print('        they match up with what you expect')
 print(aouts)
+if DRY_RUN:
+    print('files won\'t be modified')
+else:
+    print('WARNING output files will be modified')
+    print('WARNING run inside a screen')
+    if CLEANUP_BAK:
+        print('WARNING backups will be deleted, too')
 check('sure?')
 check('really sure?')
-print('ok, removing wallclock dumps...')
+if DRY_RUN:
+    print('ok, doing a dry run')
+else:
+    print('ok, removing wallclock dumps...')
 
 output_dir = './' # '/cosma7/data/dp004/dc-cona1/bd/runs/halo10510/sametf'
 
@@ -134,7 +144,8 @@ for r_iout in r_iouts:
     dst = os.path.join(output_dir, 'output_{0:05d}.bak'.format(r_iout))
 
     print('moving', src, dst)
-    os.rename(src, dst)
+    if (not DRY_RUN):
+        os.rename(src, dst)
     
 for i, k_iout in enumerate(k_iouts):
     t_iout = i + 1
@@ -146,7 +157,8 @@ for i, k_iout in enumerate(k_iouts):
         dst = os.path.join(output_dir, 'output_{0:05d}'.format(t_iout))
 
         print('moving', src, dst)
-        os.rename(src, dst)
+        if (not DRY_RUN):
+            os.rename(src, dst)
 
         # Rename each file
         fns = glob.glob(os.path.join(dst, '*_{0:05d}.*'.format(k_iout)))
@@ -155,9 +167,11 @@ for i, k_iout in enumerate(k_iouts):
             dst_f = src_f.replace('_{0:05d}.'.format(k_iout),
                                   '_{0:05d}.'.format(t_iout))
             print(dst_f)
-            os.rename(src_f, dst_f)
+            if (not DRY_RUN):
+                os.rename(src_f, dst_f)
 
-# # Finally clean up the backups
-# # baks = glob.glob(os.path.join(output_dir, '*output_*.bak'))
-# # for bak in baks:
-# #     shutil.rmtree(bak)
+# Finally clean up the backups
+if ((not DRY_RUN) and CLEANUP_BAK):
+    baks = glob.glob(os.path.join(output_dir, '*output_*.bak'))
+    for bak in baks:
+        shutil.rmtree(bak)
