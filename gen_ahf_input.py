@@ -2,7 +2,6 @@ def write_cfg(path, ioutput):
     '''
     Internal function to write an appropriate AHF input file
     '''
-    import os
 
     full_path = "{0}/AHF/{1:03d}/".format(path, ioutput)
     if os.path.isdir(full_path) is False:
@@ -56,9 +55,6 @@ def write_cfg(path, ioutput):
 
 
 def run_write_cfg():
-    import os
-    import sys
-
     path = os.getcwd()
     ioutput = int(sys.argv[1])
 
@@ -66,4 +62,7 @@ def run_write_cfg():
 
 
 if __name__ == '__main__':
+    import os
+    import sys
+
     run_write_cfg()
