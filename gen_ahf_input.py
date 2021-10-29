@@ -56,10 +56,11 @@ def write_cfg(path, ioutput):
 
 
 def run_write_cfg():
+    import os
     import sys
 
-    path = sys.argv[1]
-    ioutput = int(sys.argv[2])
+    path = os.getcwd()
+    ioutput = int(sys.argv[1])
 
     write_cfg(path, ioutput)
 
