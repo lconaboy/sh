@@ -14,7 +14,7 @@ import sys
 import glob
 import shutil
 
-DRY_RUN = False
+DRY_RUN = True
 CLEANUP_BAK = False
 
 def get_aout(aini, aend, delta_aout):
@@ -33,7 +33,16 @@ def get_aout(aini, aend, delta_aout):
 
     return aout
 
-def get_aouts_nml(aini, nml='nml.nml'):
+def get_aouts_nml(output_dir, nml='nml.nml'):
+    # Get the first aout from output_00001/info_00001.txt
+    info = os.path.join(output_dir, 'output_00001/info_00001.txt')
+    with open(info, 'r') as f:
+        line = ''
+        while re.match('aexp', line) is None:
+            line = f.readline()#.strip().split()
+            
+    aini = float(line.strip().split()[-1])
+
     with open(nml, 'r') as f:
         for line in f:
             if line[0:4] == 'aout':
@@ -70,18 +79,23 @@ def get_aexp(output_dir):
     # Ignore .bak files
     # iouts = sorted([int(iout) for iout in iouts if '.bak' not in iout])
 
+    _iouts = []
     # Open the info files to get the aexps
     for iout in iouts:
-        f = open(info.format(iout), 'r')
-        line = f.readline()#.strip().split()
-
-        # See if the line has aexp in it
-        while re.match('aexp', line) is None:
+        if os.path.isfile(info.format(iout)):
+            f = open(info.format(iout), 'r')
             line = f.readline()#.strip().split()
-        f.close()
-        
-        aexps.append(float(line.strip().split()[-1]))
-        
+
+            # See if the line has aexp in it
+            while re.match('aexp', line) is None:
+                line = f.readline()#.strip().split()
+            f.close()
+
+            _iouts.append(iout)
+            aexps.append(float(line.strip().split()[-1]))
+
+    iouts = _iouts
+    
     return iouts, aexps
 
 
@@ -106,13 +120,15 @@ def check(msg):
 
     return
 
-aini = float(sys.argv[1])
-if len(sys.argv) > 2:
-    nml = sys.argv[2]
+if len(sys.argv) > 1:
+    nml = sys.argv[1]
 else:
     nml = 'nml.nml'
 
-aouts = get_aouts_nml(aini, nml)
+output_dir = './' # '/cosma7/data/dp004/dc-cona1/bd/runs/halo10510/sametf'
+    
+aouts = get_aouts_nml(output_dir, nml)
+
 print('WARNING check the following list of aouts carefully and make sure')
 print('        they match up with what you expect')
 print(aouts)
@@ -130,9 +146,11 @@ if DRY_RUN:
 else:
     print('ok, removing wallclock dumps...')
 
-output_dir = './' # '/cosma7/data/dp004/dc-cona1/bd/runs/halo10510/sametf'
-
 iouts, aexps = get_aexp(output_dir)
+# Find largest aexp and keep aouts up to there
+ma_aexp = max(aexps)
+_aouts = [x for x in aouts if x < ma_aexp]
+aouts = _aouts
 k_iouts, r_iouts = split_iouts(iouts, aouts, aexps)
 
 
@@ -146,10 +164,12 @@ for r_iout in r_iouts:
     print('moving', src, dst)
     if (not DRY_RUN):
         os.rename(src, dst)
-    
-for i, k_iout in enumerate(k_iouts):
-    t_iout = i + 1
 
+# k_iout - keep iouts
+for i, k_iout in enumerate(k_iouts):
+    t_iout = i + 1 
+
+    # t_iout - true iout (i.e. 1, 2, ..., n)
     if t_iout == k_iout:
         print('leaving output_{0:05d}'.format(t_iout))
     else:
