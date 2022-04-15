@@ -19,7 +19,7 @@ def write_cfg(path, ioutput):
         f.write("outfile_prefix    = {0}/AHF/{1:03d}/halos/ahf_\n".format(path, ioutput))
 
         LgridDomain = 128
-        LgridMax =  16777216
+        LgridMax = 1073741824
         NperDomCell = 5.0
         NperRefCell = 5.0
         VescTune = 1.5
@@ -27,7 +27,7 @@ def write_cfg(path, ioutput):
         RhoVir = 0
         Dvir = 200
         MaxGatherRad = 3.0
-        LevelDomainDecomp = 7
+        LevelDomainDecomp = 3
         NcpuReading = 4
 
         GADGET_LUNIT = 1e-3

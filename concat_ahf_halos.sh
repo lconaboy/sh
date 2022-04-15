@@ -24,22 +24,22 @@ fi
 
 cat *_halos > $fn
 
-fn="all_${n}.AHF_particles"
-echo "Writing to $fn"
+# fn="all_${n}.AHF_particles"
+# echo "Writing to $fn"
 
-if [[ -f $fn ]]; then
-    rm $fn
-fi
+# if [[ -f $fn ]]; then
+#     rm $fn
+# fi
 
-fns=($(ls *_particles))
+# fns=($(ls *_particles))
 
-for ifn in ${fns[@]}; do
-    # Redirecting the input onto wc returns just the integer number of
-    # lines
-    x=$(wc -l < $ifn)
-    if [[ $x -eq 1 ]]; then
-	echo "Found empty particles file $ifn"
-    else
-	cat $ifn >> $fn
-    fi
-done
+# for ifn in ${fns[@]}; do
+#     # Redirecting the input onto wc returns just the integer number of
+#     # lines
+#     x=$(wc -l < $ifn)
+#     if [[ $x -eq 1 ]]; then
+# 	echo "Found empty particles file $ifn"
+#     else
+# 	cat $ifn >> $fn
+#     fi
+# done
