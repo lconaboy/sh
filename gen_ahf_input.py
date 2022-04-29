@@ -18,8 +18,8 @@ def write_cfg(path, ioutput):
         f.write("ic_filetype       = 61\n")  # GADGET
         f.write("outfile_prefix    = {0}/AHF/{1:03d}/halos/ahf_\n".format(path, ioutput))
 
-        LgridDomain = 128
-        LgridMax = 1073741824
+        LgridDomain = 64
+        LgridMax = 16777216
         NperDomCell = 5.0
         NperRefCell = 5.0
         VescTune = 1.5
