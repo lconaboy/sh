@@ -22,7 +22,7 @@ if [[ -f $fn ]]; then
     rm $fn
 fi
 
-cat *_halos > $fn
+ln -s *_halos $fn
 
 # fn="all_${n}.AHF_particles"
 # echo "Writing to $fn"
