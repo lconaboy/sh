@@ -28,7 +28,7 @@ def write_cfg(path, ioutput):
         Dvir = 200
         MaxGatherRad = 3.0
         LevelDomainDecomp = 7
-        NcpuReading = 4
+        NcpuReading = 1
 
         GADGET_LUNIT = 1e-3
         GADGET_MUNIT = 1e10
