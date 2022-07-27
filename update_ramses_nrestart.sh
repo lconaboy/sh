@@ -23,4 +23,6 @@ fi
 
 echo Updating nrestart to $ln
 cp $nml $nml.bak
-sed -i "/nrestart/ c nrestart=$ln" $nml
+sed -i "/nrestart=/ c nrestart=$ln" $nml
+sed -i "/nrestart_quad=/ c nrestart_quad=$ln" $nml
+
