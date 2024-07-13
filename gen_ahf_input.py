@@ -7,10 +7,10 @@ def write_cfg(path, ioutput):
     if os.path.isdir(full_path) is False:
         if os.path.isdir("{0}/AHF/".format(path)) is False:
             os.mkdir("{0}/AHF/".format(path))
-        os.mkdir(full_path)
+        os.makedirs(full_path, exist_ok=True)
 
     # Make the halos/ dir
-    os.mkdir(os.path.join(full_path, 'halos'))
+    os.makedirs(os.path.join(full_path, 'halos'), exist_ok=True)
         
     with open("{0}/ahf.input".format(full_path), "w") as f:
         f.write("[AHF]\n")
@@ -19,7 +19,7 @@ def write_cfg(path, ioutput):
         f.write("outfile_prefix    = {0}/AHF/{1:03d}/halos/ahf_\n".format(path, ioutput))
 
         LgridDomain = 64
-        LgridMax = 16777216
+        LgridMax = 1073741824
         NperDomCell = 5.0
         NperRefCell = 5.0
         VescTune = 1.5
@@ -28,7 +28,7 @@ def write_cfg(path, ioutput):
         Dvir = 200
         MaxGatherRad = 3.0
         LevelDomainDecomp = 3
-        NcpuReading = 4
+        NcpuReading = 1
 
         GADGET_LUNIT = 1e-3
         GADGET_MUNIT = 1e10
